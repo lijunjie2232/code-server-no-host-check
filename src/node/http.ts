@@ -390,7 +390,11 @@ export function authenticateOrigin(req: express.Request): void {
   }
 
   if (host !== origin) {
-    throw new Error(`host "${host}" does not match origin "${origin}"`)
+    // throw new Error(`host "${host}" does not match origin "${origin}"`)
+    let hostNotMatch = new Error(`host "${host}" does not match origin "${origin}"`)
+    logger.warn(hostNotMatch.name)
+    logger.warn(`host "${host}" does not match origin "${origin}"`)
+    return
   }
 }
 
