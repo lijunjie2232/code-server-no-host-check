@@ -43,7 +43,7 @@ jobs:
       - name: Install development tools
         run: |
           apt update
-          DEBIAN_FRONTEND=noninteractive apt install curl wget build-essential make cmake gcc g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3 -y
+          DEBIAN_FRONTEND=noninteractive apt install rsync curl wget build-essential make cmake gcc g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3 -y
 
       - name: Install nfpm and envsubst
         run: |
