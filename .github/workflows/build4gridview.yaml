@@ -42,6 +42,7 @@ jobs:
 
       - name: Install development tools
         run: |
+          apt update
           apt install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3
 
       - name: Install nfpm and envsubst
