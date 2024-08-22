@@ -1,8 +1,7 @@
 name: Build for Gridview
 
 on:
-  release:
-    types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: write # For creating releases.
