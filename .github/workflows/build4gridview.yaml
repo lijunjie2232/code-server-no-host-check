@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: npm-version
-    container: "ubuntu:20.04"
+    container: "centos:8"
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
@@ -39,11 +39,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/package-lock.json
+
+      - run: SKIP_SUBMODULE_DEPS=1 npm ci
 
       - name: Install development tools
         run: |
-          apt update
-          DEBIAN_FRONTEND=noninteractive apt install rsync curl wget build-essential make cmake gcc g++ libx11-dev libxkbfile-dev libsecret-1-dev libkrb5-dev python-is-python3 -y
+          cd /etc/yum.repos.d/
+          sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+          sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+          yum install -y gcc-c++ make jq rsync python3 libsecret-devel krb5-devel
 
       - name: Install nfpm and envsubst
         run: |
@@ -54,39 +62,35 @@ jobs:
           mv envsubst ~/.local/bin
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Install yarn
-        run: npm install -g yarn
-
       - name: Download npm package
         uses: actions/download-artifact@v4
         with:
           name: npm-release-package
 
-      - name: Decompress npm package
-        run: tar -xzf package.tar.gz
+      - run: tar -xzf package.tar.gz
 
-      - name: Build standalone release
-        run: npm run release:standalone
+      - run: npm run release:standalone
 
-      - name: Install test dependencies
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+      - run: npm run test:integration
 
-      - name: Run integration tests on standalone release
-        run: yarn test:integration
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: success()
+        continue-on-error: true
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ inputs.version || github.ref_name }}"
           echo "VERSION=${TAG#v}" >> $GITHUB_ENV
 
-      - name: Build packages with nfpm
-        env:
+      - env:
           VERSION: ${{ env.VERSION }}
-        run: yarn package
+        run: npm run package
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -103,7 +107,7 @@ jobs:
         with:
           name: npm-release-package
 
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@v1
         with:
           draft: true
           discussion_category_name: "📣 Announcements"
@@ -125,11 +129,9 @@ jobs:
           check_artifacts: false
           if_no_artifact_found: fail
 
-      - name: Decompress npm package
-        run: tar -xzf package.tar.gz
+      - run: tar -xzf package.tar.gz
 
-      # NOTE@jsjoeio - we do this so we can strip out the v
-      # i.e. v4.9.1 -> 4.9.1
+      # Strip out the v (v4.9.1 -> 4.9.1).
       - name: Get and set VERSION
         run: |
           TAG="${{ inputs.version || github.ref_name }}"
@@ -148,8 +150,7 @@ jobs:
           # Ensure it has the same permissions as before
           chmod 644 release/lib/vscode/product.json
 
-      - name: Compress release package
-        run: tar -czf package.tar.gz release
+      - run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
         uses: actions/upload-artifact@v4
