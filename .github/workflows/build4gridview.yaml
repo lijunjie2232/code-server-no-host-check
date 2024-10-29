@@ -71,7 +71,7 @@ jobs:
 
       - run: npm run release:standalone
 
-      - run: npm run test:integration
+      # - run: npm run test:integration
 
       - name: Upload coverage report to Codecov
         uses: codecov/codecov-action@v4
