@@ -472,6 +472,7 @@ jobs:
 
   npm-version:
     name: Modify package.json version
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
