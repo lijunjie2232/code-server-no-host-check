@@ -481,8 +481,7 @@ jobs:
         id: download
         with:
           branch: ${{ github.ref }}
-          workflow: build.yaml
-          workflow_conclusion: completed
+          workflow: build4gridview.yaml
           name: npm-package
           check_artifacts: false
           if_no_artifact_found: fail
