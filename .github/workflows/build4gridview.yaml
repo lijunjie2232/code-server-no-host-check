@@ -476,15 +476,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v6
-        id: download
+      # - name: Download artifacts
+      #   uses: dawidd6/action-download-artifact@v6
+      #   id: download
+      #   with:
+      #     branch: ${{ github.ref }}
+      #     workflow: build4gridview.yaml
+      #     name: npm-package
+      #     check_artifacts: false
+      #     if_no_artifact_found: fail
+      - name: Download npm package
+        uses: actions/download-artifact@v4
         with:
-          branch: ${{ github.ref }}
-          workflow: build4gridview.yaml
           name: npm-package
-          check_artifacts: false
-          if_no_artifact_found: fail
 
       - run: tar -xzf package.tar.gz
 
